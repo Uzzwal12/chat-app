@@ -1,9 +1,8 @@
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const { UserInputError, AuthenticationError } = require("apollo-server");
 const jwt = require("jsonwebtoken");
-
-const { User } = require("../models");
-const { JWT_SECRET } = require("../config/env.json");
+const User = require("../models/user");
+const { SECRET_KEY } = require("../config/default.json");
 const {
   validateRegisterInput,
   validateLoginInput,
@@ -36,9 +35,7 @@ module.exports = {
           });
         }
 
-        const users = await User.findAll({
-          where: { username: { [Op.ne]: user.username } },
-        });
+        const users = await User.find();
 
         return users;
       } catch (err) {
@@ -76,10 +73,7 @@ module.exports = {
     },
   },
   Mutation: {
-    async register(
-      _,
-      { registerInput: { username, email, password, confirmPassword } }
-    ) {
+    async register(_, { username, email, password, confirmPassword }) {
       const { errors, valid } = validateRegisterInput(
         username,
         email,

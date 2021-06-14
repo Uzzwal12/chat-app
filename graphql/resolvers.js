@@ -1,131 +1,128 @@
-const bcrypt = require('bcryptjs')
-const { UserInputError, AuthenticationError } = require('apollo-server')
-const jwt = require('jsonwebtoken')
+const bcrypt = require("bcryptjs");
+const { UserInputError, AuthenticationError } = require("apollo-server");
+const jwt = require("jsonwebtoken");
 
-const { User } = require('../models')
-const { JWT_SECRET } = require('../config/env.json')
+const { User } = require("../models");
+const { JWT_SECRET } = require("../config/env.json");
+const {
+  validateRegisterInput,
+  validateLoginInput,
+} = require("../utils/validations");
+
+function generateToken(user) {
+  return jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    },
+    SECRET_KEY,
+    { expiresIn: "1h" }
+  );
+}
 
 module.exports = {
   Query: {
     getUsers: async (_, __, context) => {
       try {
-        let user
+        let user;
         if (context.req && context.req.headers.authorization) {
-          const token = context.req.headers.authorization.split('Bearer ')[1]
+          const token = context.req.headers.authorization.split("Bearer ")[1];
           jwt.verify(token, JWT_SECRET, (err, decodedToken) => {
             if (err) {
-              throw new AuthenticationError('Unauthenticated')
+              throw new AuthenticationError("Unauthenticated");
             }
-            user = decodedToken
-          })
+            user = decodedToken;
+          });
         }
 
         const users = await User.findAll({
           where: { username: { [Op.ne]: user.username } },
-        })
+        });
 
-        return users
+        return users;
       } catch (err) {
-        console.log(err)
-        throw err
+        console.log(err);
+        throw err;
       }
     },
-    login: async (_, args) => {
-      const { username, password } = args
-      let errors = {}
+    async login(_, { username, password }) {
+      const { errors, valid } = validateLoginInput(username, password);
 
-      try {
-        if (username.trim() === '')
-          errors.username = 'username must not be empty'
-        if (password === '') errors.password = 'password must not be empty'
-
-        if (Object.keys(errors).length > 0) {
-          throw new UserInputError('bad input', { errors })
-        }
-
-        const user = await User.findOne({
-          where: { username },
-        })
-
-        if (!user) {
-          errors.username = 'user not found'
-          throw new UserInputError('user not found', { errors })
-        }
-
-        const correctPassword = await bcrypt.compare(password, user.password)
-
-        if (!correctPassword) {
-          errors.password = 'password is incorrect'
-          throw new AuthenticationError('password is incorrect', { errors })
-        }
-
-        const token = jwt.sign({ username }, JWT_SECRET, {
-          expiresIn: 60 * 60,
-        })
-
-        return {
-          ...user.toJSON(),
-          createdAt: user.createdAt.toISOString(),
-          token,
-        }
-      } catch (err) {
-        console.log(err)
-        throw err
+      if (!valid) {
+        throw new UserInputError("Errors", { errors });
       }
+
+      const user = await User.findOne({ username });
+      if (!user) {
+        errors.general = "User not found";
+        throw new UserInputError("User not found", { errors });
+      }
+
+      const validPassword = await bcrypt.compare(password, user.password);
+
+      if (!validPassword) {
+        errors.general = "Please enter correct password";
+        throw new UserInputError("Please enter correct password", { errors });
+      }
+
+      const token = generateToken(user);
+
+      return {
+        ...user._doc,
+        id: user._id,
+        token,
+      };
     },
   },
   Mutation: {
-    register: async (_, args) => {
-      let { username, email, password, confirmPassword } = args
-      let errors = {}
+    async register(
+      _,
+      { registerInput: { username, email, password, confirmPassword } }
+    ) {
+      const { errors, valid } = validateRegisterInput(
+        username,
+        email,
+        password,
+        confirmPassword
+      );
 
-      try {
-        // Validate input data
-        if (email.trim() === '') errors.email = 'email must not be empty'
-        if (username.trim() === '')
-          errors.username = 'username must not be empty'
-        if (password.trim() === '')
-          errors.password = 'password must not be empty'
-        if (confirmPassword.trim() === '')
-          errors.confirmPassword = 'repeat password must not be empty'
-
-        if (password !== confirmPassword)
-          errors.confirmPassword = 'passwords must match'
-
-        // // Check if username / email exists
-        // const userByUsername = await User.findOne({ where: { username } })
-        // const userByEmail = await User.findOne({ where: { email } })
-
-        // if (userByUsername) errors.username = 'Username is taken'
-        // if (userByEmail) errors.email = 'Email is taken'
-
-        if (Object.keys(errors).length > 0) {
-          throw errors
-        }
-
-        // Hash password
-        password = await bcrypt.hash(password, 6)
-
-        // Create user
-        const user = await User.create({
-          username,
-          email,
-          password,
-        })
-
-        // Return user
-        return user
-      } catch (err) {
-        console.log(err)
-        if (err.name === 'SequelizeUniqueConstraintError') {
-          err.errors.forEach(
-            (e) => (errors[e.path] = `${e.path} is already taken`)
-          )
-        } else if (err.name === 'SequelizeValidationError') {
-          err.errors.forEach((e) => (errors[e.path] = e.message))
-        }
-        throw new UserInputError('Bad input', { errors })
+      if (!valid) {
+        throw new UserInputError("Errors", { errors });
       }
+      const user = await User.findOne({
+        $or: [
+          {
+            email,
+          },
+          {
+            username,
+          },
+        ],
+      });
+
+      if (user) {
+        throw new UserInputError("Username is taken", {
+          errors: {
+            username: "This username is taken",
+          },
+        });
+      }
+      password = await bcrypt.hash(password, 12);
+
+      const newUser = new User({
+        email,
+        username,
+        password,
+        createdAt: new Date().toISOString(),
+      });
+
+      const res = await newUser.save();
+
+      return {
+        ...res._doc,
+        id: res._id,
+      };
     },
   },
-}
+};

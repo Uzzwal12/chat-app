@@ -1,23 +1,53 @@
-import React, { useState } from 'react'
-import { Row, Col, Form, Button } from 'react-bootstrap'
+import React, { useState } from "react";
+import { Row, Col, Form, Button } from "react-bootstrap";
+import { gql, useMutation } from "@apollo/client";
+
+const REGISTER_USER = gql`
+  mutation register(
+    $username: String!
+    $email: String!
+    $password: String!
+    $confirmPassword: String!
+  ) {
+    register(
+      username: $username
+      email: $email
+      password: $password
+      confirmPassword: $confirmPassword
+    ) {
+      username
+      email
+      createdAt
+    }
+  }
+`;
 
 export default function Register() {
   const [variables, setVariables] = useState({
-    email: '',
-    username: '',
-    password: '',
-    confirmPassword: '',
-  })
+    email: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [registerUser, { loading }] = useMutation(REGISTER_USER, {
+    update(_, res) {
+      console.log(res);
+    },
+    onError(err) {
+      console.log(err);
+    },
+  });
 
   const submitRegisterForm = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    console.log(variables)
-  }
+    registerUser({ variables });
+  };
 
   return (
     <Row className="bg-white py-5 justify-content-center">
-      <Col sm={8} md={6} lg={4}>
+      <Col sm={8} md={6} lg={6}>
         <h1 className="text-center">Register</h1>
         <Form onSubmit={submitRegisterForm}>
           <Form.Group>
@@ -71,5 +101,5 @@ export default function Register() {
         </Form>
       </Col>
     </Row>
-  )
+  );
 }

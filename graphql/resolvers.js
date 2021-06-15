@@ -52,15 +52,21 @@ module.exports = {
 
       const user = await User.findOne({ username });
       if (!user) {
-        errors.general = "User not found";
-        throw new UserInputError("User not found", { errors });
+        throw new UserInputError("Invalid Username", {
+          errors: {
+            username: "Invalid Username",
+          },
+        });
       }
 
       const validPassword = await bcrypt.compare(password, user.password);
 
       if (!validPassword) {
-        errors.general = "Please enter correct password";
-        throw new UserInputError("Please enter correct password", { errors });
+        throw new UserInputError("Invalid Password", {
+          errors: {
+            Password: "Invalid Password",
+          },
+        });
       }
 
       const token = generateToken(user);

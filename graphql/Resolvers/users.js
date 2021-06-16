@@ -1,12 +1,13 @@
 const bcrypt = require("bcrypt");
 const { UserInputError, AuthenticationError } = require("apollo-server");
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
-const { SECRET_KEY } = require("../config/default.json");
+const User = require("../../models/user");
+const { SECRET_KEY } = require("../../config/default.json");
 const {
   validateRegisterInput,
   validateLoginInput,
-} = require("../utils/validations");
+} = require("../../utils/validations");
+const checkAuth = require("../../utils/checkAuth");
 
 function generateToken(user) {
   return jwt.sign(
@@ -22,18 +23,9 @@ function generateToken(user) {
 
 module.exports = {
   Query: {
-    getUsers: async (_, __, context) => {
+    getUsers: async (_, __, { user }) => {
       try {
-        let user;
-        if (context.req && context.req.headers.authorization) {
-          const token = context.req.headers.authorization.split("Bearer ")[1];
-          jwt.verify(token, JWT_SECRET, (err, decodedToken) => {
-            if (err) {
-              throw new AuthenticationError("Unauthenticated");
-            }
-            user = decodedToken;
-          });
-        }
+        if (!user) throw new AuthenticationError("not authenticated");
 
         const users = await User.find();
 

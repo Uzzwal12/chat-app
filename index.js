@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const dbConfig = require("./config/default.json");
 const dbUrl = dbConfig.dbUrl;
 const typeDefs = require("./graphql/typeDefs");
-const resolvers = require("./graphql/resolvers");
+const resolvers = require("./graphql/Resolvers");
+const checkAuth = require("./utils/checkAuth");
 
 mongoose
   .connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -17,7 +18,7 @@ const PORT = process.env.port || 5000;
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => ({ req }),
+  context: checkAuth,
 });
 
 server

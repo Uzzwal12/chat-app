@@ -1,7 +1,9 @@
 const bcrypt = require("bcrypt");
+const mongoose = require("mongoose");
 const { UserInputError, AuthenticationError } = require("apollo-server");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/user");
+const Message = require("../../models/message");
 const { SECRET_KEY } = require("../../config/default.json");
 const {
   validateRegisterInput,
@@ -27,7 +29,32 @@ module.exports = {
       try {
         if (!user) throw new AuthenticationError("not authenticated");
 
-        const users = await User.find();
+        let users = await User.find(
+          { username: { $ne: user.username } },
+          { username: 1, createdAt: 1, imageUrl: 1, _id: 0 }
+        );
+
+        const allUserMessages = await Message.find({
+          $or: [
+            {
+              from: user.username,
+            },
+            {
+              to: user.username,
+            },
+          ],
+        }).sort({ createdAt: -1 });
+
+        users = users.map((otherUser) => {
+          const latestMessage = allUserMessages.find(
+            (message) =>
+              message.from === otherUser.username ||
+              message.to === otherUser.username
+          );
+
+          otherUser.latestMessage = latestMessage;
+          return otherUser;
+        });
 
         return users;
       } catch (err) {

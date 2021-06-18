@@ -15,6 +15,9 @@ const userschema = new mongoose.Schema({
     unique: true,
     required: true,
   },
+  imageUrl: {
+    type: String,
+  },
   createdAt: {
     type: String,
   },

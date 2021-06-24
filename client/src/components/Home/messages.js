@@ -49,7 +49,7 @@ const Messages = () => {
     selectedChatMarkUp = <p>Loading...</p>;
   } else if (messages.length > 0) {
     selectedChatMarkUp = messages.map((message) => (
-      <p key={message._id}>{message.content}</p>
+      <p key={message.id}>{message.content}</p>
     ));
   } else if (messages.length === 0) {
     selectedChatMarkUp = <p>You are now connected</p>;

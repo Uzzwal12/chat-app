@@ -51,11 +51,9 @@ const Users = () => {
         >
           <Image
             src={user.imageUrl}
-            roundedCircle
-            className="mr-2"
-            style={{ width: 50, height: 50, objectFit: "cover" }}
+            className="user-image"
           />
-          <div>
+          <div className="ml-2">
             <p className="text-success">{user.username}</p>
             <p className="font-weight-light">
               {user.latestMessage

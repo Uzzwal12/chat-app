@@ -10,8 +10,9 @@ module.exports = {
       try {
         if (!user) throw new AuthenticationError("Not Authenticated");
         const otherUser = await User.findOne({ username });
-        const usernames = [user.username, otherUser.username];
         if (!otherUser) throw new UserInputError("User not found");
+
+        const usernames = [user.username, otherUser.username];
 
         const messages = await Message.find({
           from: { $in: usernames },
@@ -41,7 +42,7 @@ module.exports = {
         if (content.trim() === "") {
           throw new UserInputError("Cannot send empty message");
         }
-        const message = new Message({
+        const message = await new Message({
           from: user.username,
           to,
           content,

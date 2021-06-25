@@ -30,7 +30,7 @@ const Message = ({ message }) => {
             "bg-secondary": received,
           })}
         >
-          <p className={classNames({ "text-white": sent })} key={message.id}>
+          <p className={classNames({ "text-white": sent })}>
             {message.content}
           </p>
         </div>

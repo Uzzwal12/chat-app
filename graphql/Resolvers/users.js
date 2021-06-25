@@ -43,7 +43,7 @@ module.exports = {
               to: user.username,
             },
           ],
-        }).sort({ createdAt: -1 });
+        }).sort({ createdAt: 1 });
 
         users = users.map((otherUser) => {
           const latestMessage = allUserMessages.find(

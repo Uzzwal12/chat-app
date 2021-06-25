@@ -23,6 +23,8 @@ const GET_USERS = gql`
 const Users = () => {
   const dispatch = useMessageDispatch();
   const { users } = useMessageState();
+  const defaultGravatar =
+    "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
   const selectedUser = users?.find((user) => user.selected === true)?.username;
   const { loading } = useQuery(GET_USERS, {
     onCompleted: (data) =>
@@ -50,7 +52,7 @@ const Users = () => {
           }
         >
           <Image
-            src={user.imageUrl}
+            src={user.imageUrl || defaultGravatar}
             className="user-image"
           />
           <div className="ml-2">

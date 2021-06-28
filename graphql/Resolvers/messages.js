@@ -1,8 +1,14 @@
-const { UserInputError, AuthenticationError } = require("apollo-server");
+const {
+  UserInputError,
+  AuthenticationError,
+  PubSub,
+} = require("apollo-server");
 
 const User = require("../../models/user");
 const Message = require("../../models/message");
 const checkAuth = require("../../utils/checkAuth");
+
+const pubsub = new PubSub();
 
 module.exports = {
   Query: {
@@ -17,7 +23,7 @@ module.exports = {
         const messages = await Message.find({
           from: { $in: usernames },
           to: { $in: usernames },
-        }).sort({ createdAt: 1 });
+        }).sort({ createdAt: -1 });
 
         return messages;
       } catch (err) {
@@ -48,11 +54,18 @@ module.exports = {
           content,
           createdAt: new Date().toISOString(),
         });
+
+        pubsub.publish("NEW_MESSAGE", { newMessage: message });
         return message.save();
       } catch (err) {
         console.log(err);
         throw new Error(err);
       }
+    },
+  },
+  Subscription: {
+    newMessage: {
+      subscribe: () => pubsub.asyncIterator(["NEW_MESSAGE"]),
     },
   },
 };

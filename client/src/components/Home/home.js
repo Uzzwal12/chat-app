@@ -1,17 +1,16 @@
 import React, { Fragment } from "react";
 import { Row, Button } from "react-bootstrap";
-import { Link,useHistory } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuthDispatch } from "../../Context/auth";
 import Users from "./users";
 import Messages from "./messages";
 
 const Home = () => {
   const dispatch = useAuthDispatch();
-  const history = useHistory()
 
   const logout = () => {
     dispatch({ type: "LOGOUT" });
-   history.push("/login")
+    window.location.href = "/login";
   };
 
   return (

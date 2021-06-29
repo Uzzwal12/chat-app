@@ -1,14 +1,12 @@
 const {
   UserInputError,
   AuthenticationError,
-  PubSub,
+  withFilter,
 } = require("apollo-server");
 
 const User = require("../../models/user");
 const Message = require("../../models/message");
 const checkAuth = require("../../utils/checkAuth");
-
-const pubsub = new PubSub();
 
 module.exports = {
   Query: {
@@ -33,9 +31,8 @@ module.exports = {
     },
   },
   Mutation: {
-    sendMessage: async (_, { to, content }, context) => {
+    sendMessage: async (_, { to, content }, { pubsub,user }) => {
       try {
-        const { user } = checkAuth(context);
         if (!user) throw new AuthenticationError("Not Authenticated");
         const recipient = await User.findOne({ username: to });
 
@@ -65,7 +62,23 @@ module.exports = {
   },
   Subscription: {
     newMessage: {
-      subscribe: () => pubsub.asyncIterator(["NEW_MESSAGE"]),
+      subscribe: withFilter(
+        (_, __, { pubsub, user }) => {
+          if (!user) throw new AuthenticationError("Unauthenticated");
+          return pubsub.asyncIterator(["NEW_MESSAGE"]);
+        },
+        ({ newMessage }, _, { user }) => {
+          console.log("newMessage",newMessage)
+          if (
+            newMessage.from === user.username ||
+            newMessage.to === user.username
+          ) {
+            return true;
+          }
+
+          return false;
+        }
+      ),
     },
   },
 };

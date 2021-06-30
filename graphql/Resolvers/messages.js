@@ -109,7 +109,6 @@ module.exports = {
           return pubsub.asyncIterator(["NEW_MESSAGE"]);
         },
         ({ newMessage }, _, { user }) => {
-          console.log("newMessage", newMessage);
           if (
             newMessage.from === user.username ||
             newMessage.to === user.username
@@ -129,7 +128,6 @@ module.exports = {
         },
         async ({ newReaction }, _, { user }) => {
           const message = await Message.findOne({ _id: newReaction.messageId });
-          console.log("message", message);
           if (message.from === user.username || message.to === user.username) {
             return true;
           }

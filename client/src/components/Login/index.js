@@ -39,9 +39,10 @@ export default function Login(props) {
   };
 
   return (
-    <Row className="bg-white py-5 justify-content-center">
+    <Row className="bg-white py-5 justify-content-center box-shadow">
       <Col sm={8} md={6} lg={6}>
-        <h1 className="text-center">Login</h1>
+        <h3 className="text-center">Sign in</h3>
+        <p className="para-message">Sign in to continue to Chats.</p>
         <Form onSubmit={submitLoginForm}>
           <Form.Group>
             <Form.Label className={errors.username && "text-danger"}>
@@ -72,11 +73,11 @@ export default function Login(props) {
 
           <div className="text-center">
             <Button variant="success" type="submit" disabled={loading}>
-              Login
+              Sign in
             </Button>
             <br />
             <small>
-              Don't have an account <Link to="/register">Register</Link>
+              Don't have an account <Link to="/register">Sign Up</Link>
             </small>
           </div>
         </Form>

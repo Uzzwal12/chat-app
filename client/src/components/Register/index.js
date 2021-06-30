@@ -44,9 +44,10 @@ export default function Register(props) {
   };
 
   return (
-    <Row className="bg-white py-5 justify-content-center">
+    <Row className="bg-white py-5 justify-content-center box-shadow">
       <Col sm={8} md={6} lg={6}>
-        <h1 className="text-center">Register</h1>
+        <h4 className="text-center">Sign Up</h4>
+        <p className="para-message">Get your Chats account now.</p>
         <Form onSubmit={submitRegisterForm}>
           <Form.Group>
             <Form.Label className={errors.email && "text-danger"}>
@@ -105,11 +106,11 @@ export default function Register(props) {
           </Form.Group>
           <div className="text-center">
             <Button variant="success" type="submit" disabled={loading}>
-              Register
+              Sign Up
             </Button>
-            <br/>
+            <br />
             <small>
-              Already have an account <Link to="/login">Login</Link>
+              Already have an account <Link to="/login">Sign In</Link>
             </small>
           </div>
         </Form>

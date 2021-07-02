@@ -92,6 +92,7 @@ module.exports = {
             messageId: message.id,
             userId: user.id,
             content,
+            createdAt: new Date().toISOString(),
           });
         }
         pubsub.publish("NEW_REACTION", { newReaction: reaction });

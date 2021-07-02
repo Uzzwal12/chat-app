@@ -13,6 +13,9 @@ const reactionSchema = new Schema({
     type: String,
     required: true,
   },
+  createdAt: {
+    type: String,
+  },
 });
 
 const Reaction = model("Reaction", reactionSchema);

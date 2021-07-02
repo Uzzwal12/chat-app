@@ -58,7 +58,7 @@ const Messages = () => {
         },
       });
     }
-  }, [messageData]);
+  }, [dispatch, messageData, selectedUser]);
 
   const submitMessage = (e) => {
     e.preventDefault();

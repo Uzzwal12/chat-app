@@ -31,6 +31,27 @@ module.exports = {
         throw new Error(err);
       }
     },
+
+    getReactions: async (_, { username }, { user }) => {
+      try {
+        if (!user) throw new AuthenticationError("Not Authenticated");
+        const otherUser = await User.findOne({ username });
+        if (!otherUser) throw new UserInputError("User not found");
+
+        const ids = [user.id, otherUser.id];
+
+        const reaction = await Reaction.find({
+          userId: { $in: ids },
+        }).sort({ createdAt: -1 });
+
+        console.log("reaction",reaction);
+
+        return reaction;
+      } catch (err) {
+        console.log(err);
+        throw new Error(err);
+      }
+    },
   },
   Mutation: {
     sendMessage: async (_, { to, content }, { pubsub, user }) => {
@@ -86,17 +107,21 @@ module.exports = {
         });
         if (reaction) {
           reaction.content = content;
-          await reaction.save();
+          
         } else {
-          reaction = await new Reaction({
+          reaction = new Reaction({
             messageId: message.id,
             userId: user.id,
             content,
             createdAt: new Date().toISOString(),
           });
         }
+
+        reaction = await reaction.save();
+
         pubsub.publish("NEW_REACTION", { newReaction: reaction });
-        return reaction.save();
+
+        return reaction
       } catch (err) {
         throw err;
       }

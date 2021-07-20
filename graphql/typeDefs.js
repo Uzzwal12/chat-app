@@ -20,13 +20,13 @@ module.exports = gql`
     id: ID!
     content: String!
     createdAt: String!
-    message: Message!
-    user: User!
+    messageId:String!
   }
   type Query {
     getUsers: [User]!
     login(username: String!, password: String!): User!
     getMessages(username: String!): [Message]!
+    getReactions(username: String!): [Reaction]
   }
   type Mutation {
     register(

@@ -3,9 +3,17 @@ import React, { createContext, useReducer, useContext } from "react";
 const MessageStateContext = createContext();
 const MessageDispatchContext = createContext();
 
+const initialState = {
+  users: null,
+  reactions: [],
+};
+
 const messageReducer = (state, action) => {
   let usersCopy, userIndex;
-  const { username, messages, message } = action.payload;
+  const { username, messages, message, reactions, reaction } = action.payload;
+
+  console.log("action", action);
+
   switch (action.type) {
     case "SET_USERS":
       return {
@@ -43,7 +51,7 @@ const messageReducer = (state, action) => {
         messages: usersCopy[userIndex].messages
           ? [message, ...usersCopy[userIndex].messages]
           : null,
-        latestMessage: message,
+        latestMessage: reactions,
       };
 
       usersCopy[userIndex] = newUser;
@@ -53,13 +61,34 @@ const messageReducer = (state, action) => {
         users: usersCopy,
       };
 
+    case "SET_MESSAGE_REACTION":
+      usersCopy = [...state.users];
+      userIndex = usersCopy.findIndex((u) => u.username === username);
+
+      usersCopy[userIndex] = { ...usersCopy[userIndex], reactions };
+
+      return {
+        ...state,
+        users: usersCopy,
+        reactions,
+      };
+
+    case "ADD_REACTION":
+      const filetered = (state.reactions || []).filter((r) => r.id !== reaction.id)
+      const newReactions = [reaction, ...filetered]
+
+      return {
+        ...state,
+        reactions: newReactions,
+      };
+
     default:
       throw new Error(`Unknown action type: ${action.type}`);
   }
 };
 
 export const MessageProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(messageReducer, { users: null });
+  const [state, dispatch] = useReducer(messageReducer, initialState);
 
   return (
     <MessageDispatchContext.Provider value={dispatch}>

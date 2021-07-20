@@ -19,18 +19,32 @@ const NEW_MESSAGE = gql`
   }
 `;
 
+const NEW_REACTION = gql`
+  subscription newReaction {
+    newReaction {
+      id
+      content
+      createdAt
+      messageId
+    }
+  }
+`;
+
 const Home = () => {
-  const  authDispatch  = useAuthDispatch();
+  const authDispatch = useAuthDispatch();
   const messageDispatch = useMessageDispatch();
   const { user } = useAuthState();
   const { data: messageData, error: messageError } =
     useSubscription(NEW_MESSAGE);
+  const { data: reactionData, error: reactionError } =
+    useSubscription(NEW_REACTION);
+
+  console.log("reactionData", reactionData);
 
   useEffect(() => {
     if (messageError) console.log(messageError);
 
     if (messageData) {
-      console.log("messageData",messageData)
       const message = messageData.newMessage;
       const otherUser =
         user.username === message.to ? message.from : message.to;
@@ -43,6 +57,21 @@ const Home = () => {
       });
     }
   }, [messageError, messageData]);
+
+  useEffect(() => {
+    if (reactionError) console.log(reactionError);
+
+    if (reactionData) {
+      const reaction = reactionData.newReaction;
+      console.log("reactionsubs",reaction)
+      messageDispatch({
+        type: "ADD_REACTION",
+        payload: {
+          reaction,
+        },
+      });
+    }
+  }, [reactionError, reactionData]);
 
   const logout = () => {
     authDispatch({ type: "LOGOUT" });

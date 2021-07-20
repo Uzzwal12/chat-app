@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { Col, Form } from "react-bootstrap";
 import { useMessageDispatch, useMessageState } from "../../Context/message";
 import Message from "./message";
@@ -28,15 +28,30 @@ const GET_MESSAGES = gql`
   }
 `;
 
+const GET_REACTIONS = gql`
+  query getReactions($username: String!) {
+    getReactions(username: $username) {
+      id
+      content
+      createdAt
+      messageId
+    }
+  }
+`;
+
 const Messages = () => {
   const dispatch = useMessageDispatch();
-  const { users } = useMessageState();
+  const { users,reactions } = useMessageState();
   const [content, setContent] = useState("");
   const selectedUser = users?.find((user) => user.selected === true);
   const messages = selectedUser?.messages;
+  // const reactions = selectedUser?.reactions;
 
   const [getMessages, { loading, data: messageData }] =
     useLazyQuery(GET_MESSAGES);
+
+  const [getReactions, { loading: reactionLoading, data: reactionData }] =
+    useLazyQuery(GET_REACTIONS);
 
   const [sendMessage] = useMutation(SEND_MESSAGE, {
     onError: (err) => console.log(err),
@@ -46,7 +61,10 @@ const Messages = () => {
     if (selectedUser && !selectedUser.messages) {
       getMessages({ variables: { username: selectedUser.username } });
     }
-  }, [selectedUser, getMessages]);
+    if (selectedUser) {
+      getReactions({ variables: { username: selectedUser.username } });
+    }
+  }, [selectedUser, getMessages, getReactions]);
 
   useEffect(() => {
     if (messageData) {
@@ -60,6 +78,20 @@ const Messages = () => {
     }
   }, [messageData]);
 
+  useEffect(() => {
+    if (reactionData) {
+      dispatch({
+        type: "SET_MESSAGE_REACTION",
+        payload: {
+          username: selectedUser.username,
+          reactions: reactionData.getReactions,
+        },
+      });
+    }
+  }, [reactionData]);
+
+
+
   const submitMessage = (e) => {
     e.preventDefault();
     if (content.trim() === "" || !selectedUser) return;
@@ -70,12 +102,14 @@ const Messages = () => {
 
   let selectedChatMarkUp;
   if (!messages && !loading) {
-    selectedChatMarkUp = <p className="info-text">Select a friend to start conversation</p>;
+    selectedChatMarkUp = (
+      <p className="info-text">Select a friend to start conversation</p>
+    );
   } else if (loading) {
     selectedChatMarkUp = <p className="info-text">Loading...</p>;
   } else if (messages.length > 0) {
     selectedChatMarkUp = messages.map((message) => (
-      <Message message={message} />
+      <Message key={message.id} message={message} reactions={reactions} />
     ));
   } else if (messages.length === 0) {
     selectedChatMarkUp = <p className="info-text">You are now connected</p>;
@@ -87,7 +121,10 @@ const Messages = () => {
         {selectedChatMarkUp}
       </div>
       <div>
-        <Form onSubmit={submitMessage} className={(!messages && !loading) && "d-none"}>
+        <Form
+          onSubmit={submitMessage}
+          className={!messages && !loading && "d-none"}
+        >
           <Form.Group className="d-flex align-items-center">
             <Form.Control
               type="text"

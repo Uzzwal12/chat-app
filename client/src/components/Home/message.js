@@ -21,6 +21,7 @@ const Message = ({ message, reactions }) => {
   const sent = message.from === user.username;
   const received = !sent;
   const [showPopover, setShowPopover] = useState(false);
+  let set = new Set()
 
   const reactionsArray = ["❤️", "😆", "😯", "😢", "😡", "👍", "👎"];
 
@@ -66,6 +67,8 @@ const Message = ({ message, reactions }) => {
   const selectedReactions =
     reactions &&
     reactions.filter((reaction) => reaction.messageId == message.id);
+
+    const reactionsIcon = [...new Set(selectedReactions.map((reaction) => reaction.content))]
   return (
     <div
       className={classNames("d-flex my-3", {
@@ -84,22 +87,25 @@ const Message = ({ message, reactions }) => {
         transition={false}
       >
         <div
-          className={classNames("py-2 px-3 rounded-pill bg-primary", {
-            "bg-primary": sent,
-            "bg-secondary": received,
-          })}
+          className={classNames(
+            "py-2 px-3 rounded-pill bg-primary position-relative",
+            {
+              "bg-primary": sent,
+              "bg-secondary": received,
+            }
+          )}
         >
+          {selectedReactions && (
+            <div className="reaction-div p-1 rounded-pill bg-secondary">
+              {reactionsIcon} {reactionsIcon.length === 1 && selectedReactions.length}
+            </div>
+          )}
           <p className={classNames({ "text-white": sent })}>
             {message.content}
           </p>
         </div>
       </OverlayTrigger>
-      {selectedReactions &&
-        selectedReactions.map((reaction) => (
-          <div key={reaction.id} className="py-2 px-3 rounded-pill bg-white">
-            {reaction.content}
-          </div>
-        ))}
+
       {received && reactButton}
     </div>
   );

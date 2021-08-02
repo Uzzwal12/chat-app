@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import { Col, Form } from "react-bootstrap";
 import { useMessageDispatch, useMessageState } from "../../Context/message";
 import Message from "./message";
@@ -50,7 +50,7 @@ const Messages = () => {
   const [getMessages, { loading, data: messageData }] =
     useLazyQuery(GET_MESSAGES);
 
-  const [getReactions, { loading: reactionLoading, data: reactionData }] =
+  const [getReactions, { data: reactionData }] =
     useLazyQuery(GET_REACTIONS);
 
   const [sendMessage] = useMutation(SEND_MESSAGE, {
@@ -76,7 +76,7 @@ const Messages = () => {
         },
       });
     }
-  }, [messageData]);
+  }, [dispatch, messageData]);
 
   useEffect(() => {
     if (reactionData) {
@@ -88,7 +88,7 @@ const Messages = () => {
         },
       });
     }
-  }, [reactionData]);
+  }, [dispatch, reactionData]);
 
 
 
@@ -116,16 +116,16 @@ const Messages = () => {
   }
 
   return (
-    <Col xs={8}>
-      <div className="message-box d-flex flex-column-reverse">
+    <Col xs={8} className="p-0">
+      <div className="message-box d-flex flex-column-reverse p-3">
         {selectedChatMarkUp}
       </div>
-      <div>
+      <div className="px-3 py-2">
         <Form
           onSubmit={submitMessage}
           className={!messages && !loading && "d-none"}
         >
-          <Form.Group className="d-flex align-items-center">
+          <Form.Group className="d-flex align-items-center m-0">
             <Form.Control
               type="text"
               className="message-input bg-secondary rounded-pill border-0 p-3"

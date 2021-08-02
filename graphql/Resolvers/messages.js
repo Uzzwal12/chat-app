@@ -44,8 +44,6 @@ module.exports = {
           userId: { $in: ids },
         }).sort({ createdAt: -1 });
 
-        console.log("reaction",reaction);
-
         return reaction;
       } catch (err) {
         console.log(err);

@@ -74,8 +74,10 @@ const messageReducer = (state, action) => {
       };
 
     case "ADD_REACTION":
-      const filetered = (state.reactions || []).filter((r) => r.id !== reaction.id)
-      const newReactions = [reaction, ...filetered]
+      const filetered = (state.reactions || []).filter(
+        (r) => r.id !== reaction.id
+      );
+      const newReactions = [reaction, ...filetered];
 
       return {
         ...state,

@@ -4,7 +4,6 @@ const { UserInputError, AuthenticationError } = require("apollo-server");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/user");
 const Message = require("../../models/message");
-const { SECRET_KEY } = require("../../config/default.json");
 const {
   validateRegisterInput,
   validateLoginInput,
@@ -18,7 +17,7 @@ function generateToken(user) {
       email: user.email,
       username: user.username,
     },
-    SECRET_KEY,
+    process.env.SECRET_KEY,
     { expiresIn: "1h" }
   );
 }

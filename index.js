@@ -1,13 +1,15 @@
+require("dotenv").config();
 const { ApolloServer } = require("apollo-server");
 const mongoose = require("mongoose");
-const dbConfig = require("./config/default.json");
-const dbUrl = dbConfig.dbUrl;
 const typeDefs = require("./graphql/typeDefs");
 const resolvers = require("./graphql/Resolvers");
 const checkAuth = require("./utils/checkAuth");
 
 mongoose
-  .connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.dbUrl, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("Connected to mongoDb..."))
   .catch((error) => {
     console.log(error);
